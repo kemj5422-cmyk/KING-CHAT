@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kira Chat</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#eef1f6;--panel:#fff;--ink:#16213a;--mute:#6b7690;--line:#dde3ee;--acc:#5b4bdb;--acc2:#4638b8;--accsoft:#ece9ff;--user:#16213a;--userink:#fff;--code:#0f1729;--err:#d6334a;--ok:#1e9e6a;color-scheme:light}
+:root[data-theme=dark]{--bg:#0d1220;--panel:#151c2f;--ink:#e6eaf5;--mute:#8d97b3;--line:#262f48;--acc:#8b7dff;--acc2:#a89dff;--accsoft:#232050;--user:#2b3560;--userink:#fff;--code:#080c17;color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0d1220;--panel:#151c2f;--ink:#e6eaf5;--mute:#8d97b3;--line:#262f48;--acc:#8b7dff;--acc2:#a89dff;--accsoft:#232050;--user:#2b3560;--userink:#fff;--code:#080c17;color-scheme:dark}}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font:15px/1.6 'Be Vietnam Pro',system-ui,sans-serif;background:var(--bg);color:var(--ink);overflow:hidden;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.hidden{display:none!important}
+/* connect */
+#connect{height:100%;display:grid;place-items:center;padding:20px}
+.card{width:min(440px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:0 20px 60px -30px rgba(22,33,58,.35)}
+.logo{width:46px;height:46px;border-radius:13px;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:700;font-size:22px;margin-bottom:16px}
+.card h1{font-size:22px;line-height:1.25}.card p{color:var(--mute);margin:6px 0 20px}
+label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
+.f{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.row{display:flex;gap:8px}
+.btn{padding:12px 18px;border-radius:10px;background:var(--acc);color:#fff;font-weight:600;width:100%;margin-top:20px;transition:background .15s}
+.btn:hover{background:var(--acc2)}.btn:disabled{opacity:.6;cursor:wait}
+.ghost{padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+#cstat{min-height:22px;margin-top:14px;font-size:13px}
+.err{color:var(--err)}.ok{color:var(--ok)}
+/* app */
+#app{height:100%;display:grid;grid-template-columns:280px 1fr}
+aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.side-h{padding:14px;display:flex;gap:8px}
+.side-h .btn{margin:0;padding:10px}
+#list{flex:1;overflow:auto;padding:0 8px}
+.conv{display:flex;align-items:center;gap:6px;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:14px}
+.conv:hover{background:var(--bg)}.conv.on{background:var(--accsoft)}
+.conv span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.conv button{opacity:0;color:var(--mute);padding:0 4px}.conv:hover button{opacity:1}
+.side-f{padding:12px;border-top:1px solid var(--line);display:flex;gap:8px}
+.side-f .ghost{flex:1;padding:8px;font-size:13px}
+main{display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+header{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+#menu{display:none;font-size:20px}
+#model{width:min(260px,55%);padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);max-width:55%}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+header small{color:var(--mute);margin-left:auto;white-space:nowrap}
+#msgs{flex:1;overflow:auto;padding:22px 16px 8px;scroll-behavior:smooth}
+.wrap{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.m{display:flex;gap:11px}.m.user{flex-direction:row-reverse}
+.av{flex:none;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--acc);color:#fff}
+.m.user .av{background:var(--user)}
+.body{min-width:0;max-width:calc(100% - 46px)}
+.bub{padding:10px 14px;border-radius:14px;background:var(--panel);border:1px solid var(--line);overflow-wrap:anywhere}
+.m.user .bub{background:var(--user);color:var(--userink);border-color:transparent;white-space:pre-wrap}
+.bub>*+*{margin-top:.7em}.bub h1,.bub h2,.bub h3,.bub h4{line-height:1.3;font-size:1.05em}
+.bub ul,.bub ol{padding-left:1.4em}.bub a{color:var(--acc)}
+.bub blockquote{border-left:3px solid var(--acc);padding-left:12px;color:var(--mute)}
+.bub code{font:13px ui-monospace,Menlo,Consolas,monospace;background:var(--accsoft);padding:1px 5px;border-radius:5px}
+.bub hr{border:0;border-top:1px solid var(--line)}
+.code{border-radius:11px;overflow:hidden;background:var(--code);color:#dbe3ff;margin-top:.7em}
+.code-h{display:flex;justify-content:space-between;padding:6px 12px;font-size:12px;background:rgba(255,255,255,.06);color:#9aa6cf}
+.code-h button{color:#cbd4f7;font-size:12px}
+.code pre{padding:12px;overflow:auto}.code code{background:none;padding:0;color:inherit;white-space:pre}
+.acts{display:flex;gap:12px;margin-top:5px;font-size:12px;color:var(--mute)}
+.acts button:hover{color:var(--acc)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.m.user .chips{justify-content:flex-end}
+.chip{display:flex;align-items:center;gap:6px;padding:4px 8px;background:var(--panel);border:1px solid var(--line);border-radius:9px;font-size:12px;max-width:220px;color:var(--ink)}
+.chip img{width:34px;height:34px;object-fit:cover;border-radius:6px}
+.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chip button{color:var(--mute)}
+.typing::after{content:'▍';animation:b 1s steps(2) infinite;color:var(--acc)}@keyframes b{50%{opacity:0}}
+.empty{margin:auto;text-align:center;max-width:460px;padding-top:12vh}
+.empty h2{font-size:24px;margin:8px 0}.empty p{color:var(--mute)}
+.sugg{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
+.sugg button{padding:8px 13px;border:1px solid var(--line);background:var(--panel);border-radius:20px;font-size:13px}.sugg button:hover{border-color:var(--acc)}
+/* composer */
+footer{padding:8px 16px 14px}
+.comp{max-width:780px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:8px 8px 8px 12px;transition:border-color .15s}
+.comp:focus-within{border-color:var(--acc)}
+.comp .chips{padding-top:2px}
+.in{display:flex;align-items:flex-end;gap:6px}
+textarea{flex:1;border:0;outline:0;background:none;resize:none;max-height:200px;padding:7px 0;line-height:1.5}
+.ib{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:18px;color:var(--mute)}.ib:hover{background:var(--bg)}
+#send{background:var(--acc);color:#fff}#send:hover{background:var(--acc2)}#send.stop{background:var(--err)}
+.hint{text-align:center;font-size:11px;color:var(--mute);margin-top:6px}
+#drop{position:absolute;inset:0;background:rgba(91,75,219,.16);border:3px dashed var(--acc);display:grid;place-items:center;font-weight:600;color:var(--acc);z-index:5;pointer-events:none}
+/* settings */
+#set{position:fixed;inset:0;background:rgba(5,10,25,.5);display:grid;place-items:center;z-index:9;padding:16px}
+#set .card{max-height:90vh;overflow:auto}
+@media(max-width:760px){
+#app{grid-template-columns:1fr}
+aside{position:fixed;inset:0 auto 0 0;width:280px;z-index:8;transform:translateX(-100%);transition:transform .2s;padding-top:env(safe-area-inset-top)}
+aside.open{transform:none;box-shadow:0 0 0 100vmax rgba(5,10,25,.45)}
+#menu{display:block}header small{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<section id="connect">
+  <div class="card">
+    <div class="logo">K</div>
+    <h1>Kết nối Kira AI</h1>
+    <p>Nhập khóa API rồi bấm Bắt đầu để mở khung chat.</p>
+    <label for="base">Base URL</label>
+    <input id="base" class="f" value="https://kiraai.vn/api/v1" autocomplete="off" spellcheck="false">
+    <label for="key">API key</label>
+    <div class="row">
+      <input id="key" class="f" type="password" value="kira_57cf59a54cf9e7289a26a952e1a3c774" autocomplete="off" spellcheck="false">
+      <button class="ghost" id="eye" type="button" aria-label="Hiện khóa">👁</button>
+    </div>
+    <button class="btn" id="go">Bắt đầu</button>
+    <div id="cstat" role="status"></div>
+  </div>
+</section>
+
+<section id="app" class="hidden">
+  <aside id="side">
+    <div class="side-h"><button class="btn" id="new">+ Cuộc trò chuyện mới</button></div>
+    <div id="list"></div>
+    <div class="side-f"><button class="ghost" id="opts">Cài đặt</button><button class="ghost" id="theme">Giao diện</button></div>
+  </aside>
+  <main id="main">
+    <header>
+      <button id="menu" aria-label="Mở danh sách">☰</button>
+      <span class="dot"></span>
+      <input id="model" list="mlist" aria-label="Model" spellcheck="false" autocomplete="off"><datalist id="mlist"></datalist>
+      <small id="usage"></small>
+    </header>
+    <div id="msgs"><div class="wrap" id="wrap"></div></div>
+    <footer>
+      <div class="comp">
+        <div class="chips" id="atts"></div>
+        <div class="in">
+          <button class="ib" id="clip" aria-label="Đính kèm tệp" title="Đính kèm tệp">📎</button>
+          <textarea id="inp" rows="1" placeholder="Nhắn cho Kira…  (Enter để gửi, Shift+Enter xuống dòng)"></textarea>
+          <button class="ib" id="send" aria-label="Gửi">➤</button>
+        </div>
+      </div>
+      <div class="hint">Hỗ trợ ảnh, văn bản, mã nguồn · kéo thả hoặc dán ảnh trực tiếp</div>
+      <input type="file" id="file" multiple hidden>
+    </footer>
+  </main>
+</section>
+
+<div id="set" class="hidden">
+  <div class="card">
+    <h1>Cài đặt</h1><p>Áp dụng cho các tin nhắn tiếp theo.</p>
+    <label for="sys">Chỉ dẫn hệ thống</label>
+    <textarea id="sys" class="f" rows="3" placeholder="Ví dụ: Trả lời ngắn gọn bằng tiếng Việt."></textarea>
+    <label for="temp">Độ sáng tạo: <b id="tv">0.7</b></label>
+    <input id="temp" type="range" min="0" max="1.5" step="0.1" value="0.7" style="width:100%">
+    <label><input type="checkbox" id="stream" checked> Phản hồi theo luồng (streaming)</label>
+    <button class="btn" id="sclose">Lưu và đóng</button>
+    <button class="btn" id="disc" style="background:var(--err)">Ngắt kết nối</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch{return false}}};
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,10);
+if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname))$('#base').value=location.origin+'/api/v1';
+const FALLBACK=['kira-3.5-flash','kira-2.5-pro'];
+const S={base:'',key:'',convs:LS.get('kira.convs',[]),cur:null,pending:[],ctl:null,busy:false,
+  set:LS.get('kira.set',{sys:'',temp:0.7,stream:true,model:''})};
+
+/* ---------- theme ---------- */
+const root=document.documentElement;
+if(LS.get('kira.theme',null))root.dataset.theme=LS.get('kira.theme');
+$('#theme').onclick=()=>{const dark=getComputedStyle(root).colorScheme==='dark';const t=dark?'light':'dark';root.dataset.theme=t;LS.set('kira.theme',t)};
+
+/* ---------- connect ---------- */
+$('#eye').onclick=()=>{const k=$('#key');k.type=k.type==='password'?'text':'password'};
+const cstat=(t,c)=>{const e=$('#cstat');e.textContent=t;e.className=c||''};
+$('#go').onclick=connect;
+['base','key'].forEach(i=>$('#'+i).addEventListener('keydown',e=>e.key==='Enter'&&connect()));
+
+async function connect(){
+  const base=$('#base').value.trim().replace(/\/+$/,''),key=$('#key').value.trim();
+  if(!base||!key)return cstat('Cần nhập cả Base URL và API key.','err');
+  $('#go').disabled=true;cstat('Đang kết nối…');
+  let models=[],warn='';
+  try{
+    const r=await fetch(base+'/models',{headers:{Authorization:'Bearer '+key}});
+    if(r.status===401||r.status===403)throw Object.assign(new Error('API key không hợp lệ hoặc không đủ quyền.'),{auth:true});
+    if(r.ok){const j=await r.json();models=(j.data||j.models||[]).map(m=>m.id||m.name||m).filter(Boolean)}
+    else warn='Máy chủ trả mã '+r.status+' ở bước lấy model, dùng danh sách mặc định.';
+  }catch(e){
+    if(e.auth){$('#go').disabled=false;return cstat(e.message,'err')}
+    warn='Chưa xác minh được máy chủ ('+e.message+'). Vẫn mở khung chat, lỗi chi tiết sẽ hiện khi gửi tin.';
+  }
+  S.base=base;S.key=key;
+  const kira=models.filter(m=>/^kira-/.test(m));
+  models=[...new Set([...kira,...models])];
+  if(!models.length)models=FALLBACK;
+  $('#mlist').innerHTML=models.map(m=>`<option value="${esc(m)}">`).join('');
+  $('#model').value=S.set.model||models[0];
+  S.set.model=$('#model').value;
+  $('#go').disabled=false;cstat(warn||'Kết nối thành công.',warn?'err':'ok');
+  $('#connect').classList.add('hidden');$('#app').classList.remove('hidden');
+  S.cur?.length||(S.convs.length?open(S.convs[0].id):newChat());
+  renderList();$('#inp').focus();
+}
+$('#model').onchange=e=>{S.set.model=e.target.value.trim();LS.set('kira.set',S.set)};
+$('#disc').onclick=()=>{$('#set').classList.add('hidden');$('#app').classList.add('hidden');$('#connect').classList.remove('hidden');cstat('')};
+
+/* ---------- settings ---------- */
+$('#opts').onclick=()=>{$('#sys').value=S.set.sys;$('#temp').value=S.set.temp;$('#tv').textContent=S.set.temp;$('#stream').checked=S.set.stream;$('#set').classList.remove('hidden')};
+$('#temp').oninput=e=>$('#tv').textContent=e.target.value;
+$('#sclose').onclick=()=>{S.set={...S.set,sys:$('#sys').value.trim(),temp:+$('#temp').value,stream:$('#stream').checked};LS.set('kira.set',S.set);$('#set').classList.add('hidden')};
+$('#set').addEventListener('click',e=>e.target.id==='set'&&$('#sclose').click());
+
+/* ---------- conversations ---------- */
+const conv=()=>S.convs.find(c=>c.id===S.cur);
+function persist(){
+  if(LS.set('kira.convs',S.convs))return;
+  const lite=S.convs.map(c=>({...c,messages:c.messages.map(m=>({...m,files:(m.files||[]).map(f=>f.kind==='image'?{...f,data:''}:f)}))}));
+  LS.set('kira.convs',lite);
+}
+function newChat(){const c={id:uid(),title:'Cuộc trò chuyện mới',messages:[],t:Date.now()};S.convs.unshift(c);open(c.id);renderList();$('#side').classList.remove('open')}
+function open(id){S.cur=id;S.pending=[];renderAtts();renderMsgs();renderList();$('#side').classList.remove('open')}
+function renderList(){
+  $('#list').innerHTML='';
+  S.convs.forEach(c=>{
+    const d=document.createElement('div');d.className='conv'+(c.id===S.cur?' on':'');
+    d.innerHTML=`<span>${esc(c.title)}</span><button aria-label="Xóa">✕</button>`;
+    d.onclick=()=>open(c.id);
+    d.querySelector('button').onclick=e=>{e.stopPropagation();S.convs=S.convs.filter(x=>x.id!==c.id);persist();S.cur===c.id?(S.convs[0]?open(S.convs[0].id):newChat()):renderList()};
+    $('#list').appendChild(d);
+  });
+}
+$('#new').onclick=newChat;
+$('#menu').onclick=()=>$('#side').classList.toggle('open');
+
+/* ---------- markdown ---------- */
+function inline(t){
+  return t.split(/(`[^`\n]+`)/).map((p,i)=>{
+    if(i%2)return '<code>'+esc(p.slice(1,-1))+'</code>';
+    return esc(p).replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>')
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  }).join('');
+}
+function md(src){
+  const blocks=[];
+  src=src.replace(/```([\w+#.-]*)[^\n]*\n?([\s\S]*?)(```|$)/g,(m,l,c)=>{blocks.push({l,c:c.replace(/\n$/,'')});return '\n\u0000'+(blocks.length-1)+'\u0000\n'});
+  const L=src.split('\n');let h='',i=0;
+  const start=s=>/^(#{1,4}\s|>|\s*([-*+]|\d+\.)\s|\u0000\d+\u0000|(-{3,}|\*{3,})$)/.test(s);
+  while(i<L.length){
+    const s=L[i];let m;
+    if(!s.trim()){i++;continue}
+    if(m=s.match(/^\u0000(\d+)\u0000$/)){const b=blocks[m[1]];
+      h+=`<div class="code"><div class="code-h"><span>${esc(b.l||'code')}</span><button data-copy>Sao chép</button></div><pre><code>${esc(b.c)}</code></pre></div>`;i++}
+    else if(m=s.match(/^(#{1,4})\s+(.*)/)){h+=`<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`;i++}
+    else if(/^(-{3,}|\*{3,})$/.test(s.trim())){h+='<hr>';i++}
+    else if(/^>/.test(s)){let q=[];while(i<L.length&&/^>/.test(L[i]))q.push(L[i++].replace(/^>\s?/,''));h+=`<blockquote>${inline(q.join('\n')).replace(/\n/g,'<br>')}</blockquote>`}
+    else if(/^\s*([-*+]|\d+\.)\s+/.test(s)){const ol=/^\s*\d+\./.test(s);let it=[];
+      while(i<L.length&&/^\s*([-*+]|\d+\.)\s+/.test(L[i]))it.push('<li>'+inline(L[i++].replace(/^\s*([-*+]|\d+\.)\s+/,''))+'</li>');
+      h+=`<${ol?'ol':'ul'}>${it.join('')}</${ol?'ol':'ul'}>`}
+    else{let p=[];while(i<L.length&&L[i].trim()&&!start(L[i]))p.push(L[i++]);if(!p.length)p.push(L[i++]);h+=`<p>${inline(p.join('\n')).replace(/\n/g,'<br>')}</p>`}
+  }
+  return h;
+}
+
+/* ---------- render messages ---------- */
+function chipsHTML(files){return (files||[]).map(f=>`<div class="chip">${f.kind==='image'&&f.data?`<img src="${f.data}" alt="">`:'📄'}<span>${esc(f.name)}</span></div>`).join('')}
+function msgEl(m,idx,last){
+  const d=document.createElement('div');d.className='m '+(m.role==='user'?'user':'bot');
+  const ch=m.files?.length?`<div class="chips">${chipsHTML(m.files)}</div>`:'';
+  const bub=m.role==='user'?esc(m.content):md(m.content);
+  d.innerHTML=`<div class="av">${m.role==='user'?'Bạn':'K'}</div><div class="body">${ch}<div class="bub">${bub}</div>
+  <div class="acts"><button data-act="copy">Sao chép</button>${m.role==='assistant'&&last?'<button data-act="redo">Tạo lại</button>':''}${m.role==='user'&&last?'<button data-act="edit">Sửa</button>':''}</div></div>`;
+  d.dataset.i=idx;return d;
+}
+function renderMsgs(){
+  const w=$('#wrap'),c=conv();w.innerHTML='';
+  if(!c||!c.messages.length){
+    w.innerHTML=`<div class="empty"><div class="logo" style="margin:0 auto 6px">K</div><h2>Bạn muốn hỏi gì hôm nay?</h2><p>Gửi câu hỏi, đính kèm ảnh hoặc tệp mã nguồn để Kira phân tích.</p>
+    <div class="sugg">${['Giải thích đoạn code trong tệp này','Viết hàm debounce bằng JavaScript','Tóm tắt nội dung tôi dán vào','Mô tả giúp tôi bức ảnh này'].map(s=>`<button>${s}</button>`).join('')}</div></div>`;
+    w.querySelectorAll('.sugg button').forEach(b=>b.onclick=()=>{$('#inp').value=b.textContent;$('#inp').focus();autosize()});return}
+  c.messages.forEach((m,i)=>w.appendChild(msgEl(m,i,i===c.messages.length-1)));
+  scrollEnd(true);
+}
+const scrollEnd=f=>{const e=$('#msgs');if(f||e.scrollHeight-e.scrollTop-e.clientHeight<160)e.scrollTop=e.scrollHeight};
+$('#wrap').addEventListener('click',e=>{
+  const cp=e.target.closest('[data-copy]');
+  if(cp){navigator.clipboard?.writeText(cp.closest('.code').querySelector('code').textContent);cp.textContent='Đã chép';setTimeout(()=>cp.textContent='Sao chép',1200);return}
+  const a=e.target.closest('[data-act]');if(!a)return;
+  const c=conv(),i=+a.closest('.m').dataset.i,m=c.messages[i];
+  if(a.dataset.act==='copy'){navigator.clipboard?.writeText(m.content);a.textContent='Đã chép';setTimeout(()=>a.textContent='Sao chép',1200)}
+  if(a.dataset.act==='redo'&&!S.busy){c.messages.pop();renderMsgs();run()}
+  if(a.dataset.act==='edit'&&!S.busy){c.messages.pop();$('#inp').value=m.content;S.pending=m.files||[];renderAtts();renderMsgs();autosize();$('#inp').focus()}
+});
+
+/* ---------- attachments ---------- */
+const TEXT=/\.(txt|md|json|csv|tsv|xml|html?|css|scss|js|mjs|jsx|ts|tsx|py|java|c|h|cpp|hpp|cs|go|rs|php|rb|sh|bat|ps1|sql|yml|yaml|toml|ini|cfg|log|lua|kt|swift|vue|svelte|env)$/i;
+function readAs(f,mode){return new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(r.error);mode==='url'?r.readAsDataURL(f):r.readAsText(f)})}
+async function addFiles(list){
+  for(const f of list){
+    try{
+      if(f.type.startsWith('image/')){
+        if(f.size>8e6){toast(f.name+': ảnh quá lớn (tối đa 8MB)');continue}
+        S.pending.push({kind:'image',name:f.name||'ảnh.png',data:await readAs(f,'url')});
+      }else if(f.type.startsWith('text/')||TEXT.test(f.name)||f.type==='application/json'){
+        if(f.size>1.5e6){toast(f.name+': tệp quá lớn (tối đa 1.5MB)');continue}
+        S.pending.push({kind:'text',name:f.name,data:(await readAs(f,'text')).slice(0,200000)});
+      }else toast(f.name+': định dạng chưa hỗ trợ. Hãy dùng ảnh hoặc tệp văn bản/mã nguồn.');
+    }catch(e){toast('Không đọc được '+f.name)}
+  }
+  renderAtts();
+}
+function renderAtts(){
+  const a=$('#atts');a.innerHTML='';
+  S.pending.forEach((f,i)=>{const d=document.createElement('div');d.className='chip';
+    d.innerHTML=(f.kind==='image'?`<img src="${f.data}" alt="">`:'📄')+`<span>${esc(f.name)}</span><button aria-label="Bỏ tệp">✕</button>`;
+    d.querySelector('button').onclick=()=>{S.pending.splice(i,1);renderAtts()};a.appendChild(d)});
+}
+let tt;function toast(t){const u=$('#usage');u.textContent=t;u.style.color='var(--err)';clearTimeout(tt);tt=setTimeout(()=>{u.textContent='';u.style.color=''},4000)}
+$('#clip').onclick=()=>$('#file').click();
+$('#file').onchange=e=>{addFiles([...e.target.files]);e.target.value=''};
+let dc=0;const dz=$('#main');
+dz.addEventListener('dragenter',e=>{e.preventDefault();if(!dc++){const d=document.createElement('div');d.id='drop';d.textContent='Thả tệp để đính kèm';dz.appendChild(d)}});
+dz.addEventListener('dragover',e=>e.preventDefault());
+dz.addEventListener('dragleave',()=>{if(!--dc)$('#drop')?.remove()});
+dz.addEventListener('drop',e=>{e.preventDefault();dc=0;$('#drop')?.remove();addFiles([...e.dataTransfer.files])});
+$('#inp').addEventListener('paste',e=>{const f=[...e.clipboardData.files];if(f.length){e.preventDefault();addFiles(f)}});
+
+/* ---------- composer ---------- */
+const autosize=()=>{const t=$('#inp');t.style.height='auto';t.style.height=Math.min(t.scrollHeight,200)+'px'};
+$('#inp').addEventListener('input',autosize);
+$('#inp').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();submit()}});
+$('#send').onclick=()=>S.busy?S.ctl?.abort():submit();
+
+function submit(){
+  if(S.busy)return;
+  const text=$('#inp').value.trim();
+  if(!text&&!S.pending.length)return;
+  const c=conv();
+  c.messages.push({role:'user',content:text||'(Xem tệp đính kèm)',files:S.pending});
+  if(c.messages.length===1)c.title=(text||S.pending[0].name).slice(0,42);
+  S.pending=[];$('#inp').value='';autosize();renderAtts();renderMsgs();renderList();run();
+}
+
+function toApi(m){
+  if(m.role!=='user'||!m.files?.length)return{role:m.role,content:m.content};
+  let t=m.content;const parts=[];
+  m.files.forEach(f=>{
+    if(f.kind==='text')t+=`\n\n[Tệp: ${f.name}]\n\`\`\`\n${f.data}\n\`\`\``;
+    else if(f.data)parts.push({type:'image_url',image_url:{url:f.data}});
+  });
+  return parts.length?{role:'user',content:[{type:'text',text:t},...parts]}:{role:'user',content:t};
+}
+
+async function run(){
+  const c=conv();S.busy=true;S.ctl=new AbortController();
+  $('#send').classList.add('stop');$('#send').textContent='■';$('#send').setAttribute('aria-label','Dừng');
+  const msgs=[...(S.set.sys?[{role:'system',content:S.set.sys}]:[]),...c.messages.map(toApi)];
+  const bot={role:'assistant',content:''};
+  const el=msgEl(bot,c.messages.length,false);el.querySelector('.acts').remove();
+  const bub=el.querySelector('.bub');bub.classList.add('typing');
+  $('#wrap').appendChild(el);scrollEnd(true);
+  let raf=0;const paint=()=>{raf=0;bub.innerHTML=md(bot.content);scrollEnd()};
+  const t0=performance.now();let usage=null;
+  try{
+    const r=await fetch(S.base+'/chat/completions',{method:'POST',signal:S.ctl.signal,
+      headers:{'Content-Type':'application/json',Authorization:'Bearer '+S.key},
+      body:JSON.stringify({model:S.set.model,messages:msgs,temperature:S.set.temp,stream:S.set.stream})});
+    if(!r.ok){let d='';try{const j=await r.json();d=j.error?.message||j.message||JSON.stringify(j)}catch{}
+      throw new Error(`Lỗi ${r.status}${r.status===401?' – API key không hợp lệ':r.status===402||r.status===429?' – hết hạn mức hoặc quá nhiều yêu cầu':''}${d?': '+d:''}`)}
+    const ct=r.headers.get('content-type')||'';
+    if(S.set.stream&&ct.includes('text/event-stream')&&r.body){
+      const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
+      for(;;){
+        const {done,value}=await rd.read();if(done)break;
+        buf+=dec.decode(value,{stream:true});
+        const lines=buf.split('\n');buf=lines.pop();
+        for(const ln of lines){
+          const s=ln.trim();if(!s.startsWith('data:'))continue;
+          const p=s.slice(5).trim();if(p==='[DONE]')continue;
+          try{const j=JSON.parse(p);const dl=j.choices?.[0]?.delta?.content;if(dl){bot.content+=dl;raf||(raf=requestAnimationFrame(paint))}if(j.usage)usage=j.usage}catch{}
+        }
+      }
+    }else{
+      const j=await r.json();bot.content=j.choices?.[0]?.message?.content||j.choices?.[0]?.text||'';usage=j.usage;
+    }
+    if(!bot.content.trim())bot.content='_(Không nhận được nội dung phản hồi.)_';
+    $('#usage').textContent=((performance.now()-t0)/1000).toFixed(1)+'s'+(usage?.total_tokens?' · '+usage.total_tokens+' tokens':'');
+  }catch(e){
+    if(e.name==='AbortError')bot.content=(bot.content||'')+'\n\n_(Đã dừng)_';
+    else bot.content=(bot.content?bot.content+'\n\n':'')+'⚠️ '+(e.message==='Failed to fetch'?'Không gọi được API (mạng hoặc CORS).':e.message);
+  }finally{
+    cancelAnimationFrame(raf);bub.classList.remove('typing');
+    c.messages.push(bot);persist();S.busy=false;S.ctl=null;
+    $('#send').classList.remove('stop');$('#send').textContent='➤';$('#send').setAttribute('aria-label','Gửi');
+    renderMsgs();
+  }
+}
+</script>
+</body>
+</html>
